@@ -1,0 +1,12 @@
+{
+  "name": "AgendaFácil Pro Social",
+  "short_name": "AgendaFácil",
+  "description": "Plataforma social e de gestão para negócios locais.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f5f8",
+  "theme_color": "#101018",
+  "lang": "pt-BR",
+  "icons": []
+}

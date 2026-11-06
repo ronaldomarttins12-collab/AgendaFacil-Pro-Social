@@ -1,0 +1,22 @@
+# AgendaFácil Pro Social — arquivos complementares
+
+Este pacote contém apenas os arquivos complementares de instalação (PWA) que o `index.html` atual já referencia:
+
+- `manifest.webmanifest`
+- `sw.js`
+
+## Como aplicar pelo GitHub no celular
+
+1. Abra o repositório `AgendaFacil-Pro-Social`.
+2. Entre na pasta principal (raiz), onde está o `index.html`.
+3. Use **Add file / Upload files**.
+4. Extraia este ZIP no celular e envie os dois arquivos para a raiz do repositório.
+5. Confirme em **Commit changes**.
+
+**Importante:** não substitua nem apague o `index.html` atual. Este pacote não contém o aplicativo completo nem altera o banco Supabase.
+
+## Observações
+
+- O Service Worker exige HTTPS (o GitHub Pages fornece HTTPS).
+- O cache é básico e prioriza tentar buscar a versão online antes de usar o cache.
+- A instalação PWA ainda precisa ser validada no navegador real.
