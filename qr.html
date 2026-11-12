@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101018">
+<title>Cardápio digital · AgendaFácil</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#f5f5f8;--card:#fff;--ink:#171720;--muted:#777783;--line:#ececf1;--pink:#d63d91;--purple:#7045d8;--green:#15966a;--red:#d34b59}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:620px;margin:auto;padding:18px 14px 40px}.brand{font-weight:900;font-size:14px;color:var(--purple);letter-spacing:.2px}.hero,.product,.summary{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}.hero{text-align:center}.hero img{max-width:96px;max-height:96px;object-fit:contain;border-radius:16px}.muted{color:var(--muted);font-size:13px}.product{display:flex;gap:12px;align-items:flex-start}.product img{width:82px;height:82px;object-fit:cover;border-radius:12px;background:#f2effb}.grow{flex:1;min-width:0}.price{font-weight:850;color:var(--purple)}label{display:block;font-size:12px;font-weight:750;color:#666575;margin:12px 0 6px}input,textarea{width:100%;padding:11px 12px;border:1px solid #e5e4eb;border-radius:11px;background:#fff;font:inherit}input[type=number]{max-width:92px}button{width:100%;border:0;border-radius:12px;padding:13px 16px;background:linear-gradient(110deg,var(--purple),var(--pink));color:#fff;font:inherit;font-weight:800}.notice{padding:13px;border-radius:12px;background:#fff8e9;color:#74521a}.error{padding:13px;border-radius:12px;background:#fff0f1;color:var(--red)}.success{padding:16px;border-radius:14px;background:#e8f7f0;color:#147a55}.hidden{display:none}.row{display:flex;gap:10px;align-items:center}.qty{width:82px}.empty{text-align:center;padding:30px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="brand">AgendaFácil Pro Social</div>
+  <section id="loading" class="hero"><h2>Carregando cardápio…</h2><p class="muted">Aguarde um instante.</p></section>
+  <section id="error" class="error hidden" role="alert"></section>
+  <section id="content" class="hidden">
+    <header class="hero">
+      <img id="businessLogo" class="hidden" alt="Logo da empresa">
+      <h1 id="businessName">Cardápio</h1>
+      <p id="tableLabel" class="muted"></p>
+      <p class="muted">Escolha os itens e envie seu pedido. A equipe da empresa receberá a solicitação para confirmar.</p>
+    </header>
+    <section id="products"></section>
+    <section class="summary">
+      <label for="customerName">Seu nome (opcional)</label>
+      <input id="customerName" maxlength="100" placeholder="Como podemos chamar você?">
+      <p class="muted">O envio não realiza pagamento. O pagamento será combinado diretamente com a empresa.</p>
+      <button id="sendOrder">Enviar pedido</button>
+    </section>
+    <section id="success" class="success hidden" aria-live="polite">
+      <h2>Pedido enviado!</h2>
+      <p>Sua solicitação foi enviada à equipe. Aguarde a confirmação do atendimento.</p>
+      <button id="newOrder">Fazer outro pedido</button>
+    </section>
+  </section>
+</main>
+<script>
+const SUPABASE_URL='https://rmxhglhqcclzajpypzrk.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_QlivCNWXT8vMVNnBDXogaQ_16GdjoVm';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const $=id=>document.getElementById(id);
+const money=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const token=new URLSearchParams(location.search).get('token')||'';
+let menu=null;
+function showError(message){$('loading').classList.add('hidden');$('error').textContent=message;$('error').classList.remove('hidden')}
+function renderMenu(data){menu=data;$('businessName').textContent=data.business?.name||'Cardápio';$('tableLabel').textContent=data.table?.label||'Mesa';if(data.business?.logo_url){$('businessLogo').src=data.business.logo_url;$('businessLogo').classList.remove('hidden')}
+ const list=$('products');list.replaceChildren();(data.products||[]).forEach(p=>{const card=document.createElement('article');card.className='product';if(p.image_url){const img=document.createElement('img');img.src=p.image_url;img.alt=p.name||'Produto';img.loading='lazy';card.append(img)}const body=document.createElement('div');body.className='grow';const name=document.createElement('b');name.textContent=p.name||'Produto';const desc=document.createElement('p');desc.className='muted';desc.textContent=p.description||'';const price=document.createElement('div');price.className='price';price.textContent=money(p.price);const row=document.createElement('div');row.className='row';const qty=document.createElement('input');qty.type='number';qty.min='0';qty.step='1';qty.value='0';qty.className='qty';qty.dataset.productId=p.id;qty.setAttribute('aria-label','Quantidade de '+(p.name||'produto'));row.append(qty);const note=document.createElement('input');note.type='text';note.maxLength=240;note.placeholder='Observação / adicionais (opcional)';note.dataset.noteFor=p.id;note.setAttribute('aria-label','Observação de '+(p.name||'produto'));body.append(name,desc,price,row,note);card.append(body);list.append(card)});
+ $('loading').classList.add('hidden');$('content').classList.remove('hidden');if(!(data.products||[]).length){list.innerHTML='<div class="empty">Este cardápio ainda não tem produtos disponíveis.</div>';$('sendOrder').disabled=true}}
+async function loadMenu(){if(token.length<32)return showError('QR Code inválido. Peça à equipe para gerar um novo código.');try{const {data,error}=await sb.rpc('get_qr_table_menu',{p_token:token});if(error)throw error;if(!data?.business||!Array.isArray(data.products))throw new Error('Não foi possível carregar este cardápio.');renderMenu(data)}catch(err){showError(err?.message||'Não foi possível carregar o cardápio. Confira sua conexão ou peça um novo QR Code.') }}
+$('sendOrder').onclick=async()=>{const inputs=[...document.querySelectorAll('[data-product-id]')];const items=inputs.map(el=>({product_id:el.dataset.productId,quantity:Number(el.value),notes:document.querySelector(`[data-note-for="${el.dataset.productId}"]`)?.value.trim()||null})).filter(x=>Number.isFinite(x.quantity)&&x.quantity>0);if(!items.length)return alert('Escolha pelo menos um item.');if(items.some(x=>!Number.isInteger(x.quantity)))return alert('Informe quantidades inteiras.');const btn=$('sendOrder');btn.disabled=true;btn.textContent='Enviando…';try{const {error}=await sb.rpc('submit_qr_tab_request',{p_token:token,p_items:items,p_customer_name:$('customerName').value.trim()||null});if(error)throw error;$('products').classList.add('hidden');$('success').classList.remove('hidden');$('customerName').disabled=true;btn.classList.add('hidden')}catch(err){alert(err?.message||'Não foi possível enviar o pedido. Confira os itens e tente novamente.');btn.disabled=false;btn.textContent='Enviar pedido'}};
+$('newOrder').onclick=()=>{document.querySelectorAll('[data-product-id]').forEach(el=>el.value='0');document.querySelectorAll('[data-note-for]').forEach(el=>el.value='');$('customerName').disabled=false;$('success').classList.add('hidden');$('products').classList.remove('hidden');$('sendOrder').classList.remove('hidden');$('sendOrder').disabled=false;$('sendOrder').textContent='Enviar pedido'};
+loadMenu();
+</script>
+</body>
+</html>
